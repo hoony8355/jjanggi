@@ -46,34 +46,41 @@ export function drawBoard() {
   const boardEl = document.getElementById('gameBoard');
   boardEl.innerHTML = '';
 
-  for (let y = 0; y < 10; y++) {
-    for (let x = 0; x < 9; x++) {
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 9; col++) {
       const intersection = document.createElement('div');
       intersection.className = 'intersection';
 
-      // 왕성 구역이면 palace 클래스 추가
-      const isPalace =
-        ((y >= 0 && y <= 2 && x >= 3 && x <= 5) ||
-         (y >= 7 && y <= 9 && x >= 3 && x <= 5));
+      // 교차점 위치를 % 단위로 계산해 선 위에 배치
+      intersection.style.left = `${(col / 8) * 100}%`;
+      intersection.style.top = `${(row / 9) * 100}%`;
 
-      if (isPalace && ((y === x) || (x + y === 8))) {
-        intersection.classList.add('palace');
+      // 왕성 X자 표시
+      if (
+        (row === 0 || row === 2 || row === 9 || row === 7) && (col === 3 || col === 5) ||
+        (row === 1 || row === 8) && col === 4
+      ) {
+        const palaceLine = document.createElement('div');
+        palaceLine.className = 'palace-line';
+        intersection.appendChild(palaceLine);
       }
 
-      const piece = board[y][x];
+      const piece = board[row][col];
       if (piece) {
         const pieceEl = document.createElement('div');
         pieceEl.className = 'piece';
-        pieceEl.textContent = getSymbol(piece.type, piece.owner);
+        pieceEl.dataset.type = piece.type;
+        pieceEl.textContent = getPieceLabel(piece.type, piece.owner);
         pieceEl.style.backgroundColor = piece.owner === 'red' ? '#ffdddd' : '#ddeeff';
         intersection.appendChild(pieceEl);
       }
 
-      intersection.addEventListener('click', () => window.handleCellClick(y, x));
+      intersection.addEventListener('click', () => window.handleCellClick(row, col));
       boardEl.appendChild(intersection);
     }
   }
 }
+
 
 function getSymbol(type, owner) {
   const symbols = {
