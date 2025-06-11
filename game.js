@@ -1,147 +1,145 @@
-// game.js - 짱기 전통 장기판 + 디버깅 로그 포함
+// game.js (리팩토링: 전통 장기판 + 정확한 기물 이동 처리)
+
 import { pieceRules, getValidMoves } from './pieces.js';
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-const canvas = document.getElementById("board");
-const ctx = canvas.getContext("2d");
-const TILE_SIZE = 60;
-const ROWS = 10;
-const COLS = 9;
-
-let board = [];
+const boardElement = document.getElementById('board');
+const BOARD_ROWS = 10;
+const BOARD_COLS = 9;
+let board = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
 let selectedPiece = null;
-let validMoves = [];
-let isPlayerTurn = true;
+let turn = 'red';
 
-const initialSetup = [
-  ["cha", "ma", "sang", "sa", "wang", "sa", "sang", "ma", "cha"],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, "po", 0, 0, 0, 0, 0, "po", 0],
-  ["jol", 0, "jol", 0, "jol", 0, "jol", 0, "jol"],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ["JOL", 0, "JOL", 0, "JOL", 0, "JOL", 0, "JOL"],
-  [0, "PO", 0, 0, 0, 0, 0, "PO", 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ["CHA", "MA", "SANG", "SA", "WANG", "SA", "SANG", "MA", "CHA"]
-];
-
-function initBoard() {
-  console.log("🔧 initBoard 호출됨");
-  board = JSON.parse(JSON.stringify(initialSetup));
-  drawBoard();
-}
-
+// 🟨 1. 전통 장기판 생성
 function drawBoard() {
-  if (!ctx) {
-    console.error("❌ canvas context 불러오기 실패");
-    return;
-  }
-
-  console.log("🧱 drawBoard 실행");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "#333";
-  ctx.lineWidth = 1.2;
-
-  // 격자
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  boardElement.innerHTML = '';
+  for (let y = 0; y < BOARD_ROWS; y++) {
+    for (let x = 0; x < BOARD_COLS; x++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      cell.dataset.y = y;
+      cell.dataset.x = x;
+      boardElement.appendChild(cell);
     }
   }
 
-  // 강 표시
-  ctx.fillStyle = "#eef";
-  ctx.fillRect(0, 4 * TILE_SIZE, COLS * TILE_SIZE, TILE_SIZE);
-  console.log("🌊 강(한강선) 표시 완료");
+  // 교차점 표시용 선 (canvas나 배경 SVG로 개선 가능)
+  boardElement.style.gridTemplateRows = `repeat(${BOARD_ROWS}, 1fr)`;
+  boardElement.style.gridTemplateColumns = `repeat(${BOARD_COLS}, 1fr)`;
 
-  // 궁성 대각선
-  ctx.strokeStyle = "#888";
-  ctx.beginPath();
-  ctx.moveTo(3 * TILE_SIZE, 0);
-  ctx.lineTo(5 * TILE_SIZE, 2 * TILE_SIZE);
-  ctx.moveTo(5 * TILE_SIZE, 0);
-  ctx.lineTo(3 * TILE_SIZE, 2 * TILE_SIZE);
-  ctx.moveTo(3 * TILE_SIZE, 7 * TILE_SIZE);
-  ctx.lineTo(5 * TILE_SIZE, 9 * TILE_SIZE);
-  ctx.moveTo(5 * TILE_SIZE, 7 * TILE_SIZE);
-  ctx.lineTo(3 * TILE_SIZE, 9 * TILE_SIZE);
-  ctx.stroke();
-  console.log("🏯 궁성 대각선 표시 완료");
-
-  // 말 그리기
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const piece = board[r][c];
-      if (selectedPiece && validMoves.some(m => m.y === r && m.x === c)) {
-        ctx.fillStyle = "#d0f0d0";
-        ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-      }
-      if (piece) drawPiece(piece, c, r);
-    }
-  }
-  console.log("♟ 장기말 렌더링 완료");
+  console.log("📦 Board rendered with traditional Janggi layout");
 }
 
-function drawPiece(piece, col, row) {
-  const x = col * TILE_SIZE + TILE_SIZE / 2;
-  const y = row * TILE_SIZE + TILE_SIZE / 2;
-  const radius = TILE_SIZE * 0.4;
-  const color = piece === piece.toUpperCase() ? "blue" : "red";
-
-  ctx.beginPath();
-  for (let i = 0; i < 8; i++) {
-    const angle = (Math.PI / 4) * i;
-    const px = x + radius * Math.cos(angle);
-    const py = y + radius * Math.sin(angle);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+function placeInitialPieces() {
+  // 예시 배치 - 빨강 플레이어 (하단)
+  const setup = [
+    { type: 'CHA', x: 0 },
+    { type: 'MA', x: 1 },
+    { type: 'SANG', x: 2 },
+    { type: 'SA', x: 3 },
+    { type: 'WANG', x: 4 },
+    { type: 'SA', x: 5 },
+    { type: 'SANG', x: 6 },
+    { type: 'MA', x: 7 },
+    { type: 'CHA', x: 8 },
+  ];
+  for (let item of setup) {
+    placePiece(9, item.x, item.type, 'red');
+    placePiece(0, item.x, item.type, 'blue');
   }
-  ctx.closePath();
-  ctx.fillStyle = "#fff";
-  ctx.fill();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  ctx.fillStyle = color;
-  ctx.font = "16px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(piece.toUpperCase(), x, y);
+  placePiece(7, 1, 'PO', 'red');
+  placePiece(7, 7, 'PO', 'red');
+  placePiece(2, 1, 'PO', 'blue');
+  placePiece(2, 7, 'PO', 'blue');
+  for (let x = 0; x < BOARD_COLS; x += 2) {
+    placePiece(6, x, 'JOL', 'red');
+    placePiece(3, x, 'JOL', 'blue');
+  }
+  console.log("♟ Initial pieces placed");
 }
 
-canvas.addEventListener("click", (e) => {
-  if (!isPlayerTurn) return;
+function placePiece(y, x, type, owner) {
+  const piece = document.createElement('div');
+  piece.classList.add('piece', owner);
+  piece.textContent = type;
+  piece.dataset.type = type;
+  piece.dataset.owner = owner;
+  piece.dataset.y = y;
+  piece.dataset.x = x;
+  board[y][x] = { type, owner };
+  const cell = document.querySelector(`.cell[data-y='${y}'][data-x='${x}']`);
+  if (cell) cell.appendChild(piece);
+}
 
-  const x = Math.floor(e.offsetX / TILE_SIZE);
-  const y = Math.floor(e.offsetY / TILE_SIZE);
-  const clicked = board[y][x];
+function clearHighlights() {
+  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('highlight'));
+}
 
-  console.log(`🖱 클릭 위치: (${y}, ${x}), 선택된 말:`, clicked);
+function movePiece(fromY, fromX, toY, toX) {
+  const piece = board[fromY][fromX];
+  if (!piece) return;
+
+  board[toY][toX] = piece;
+  board[fromY][fromX] = null;
+
+  const fromCell = document.querySelector(`.cell[data-y='${fromY}'][data-x='${fromX}']`);
+  const toCell = document.querySelector(`.cell[data-y='${toY}'][data-x='${toX}']`);
+
+  const pieceEl = fromCell.querySelector('.piece');
+  if (pieceEl) {
+    pieceEl.dataset.y = toY;
+    pieceEl.dataset.x = toX;
+    toCell.innerHTML = '';
+    toCell.appendChild(pieceEl);
+    fromCell.innerHTML = '';
+  }
+  selectedPiece = null;
+  turn = turn === 'red' ? 'blue' : 'red';
+  clearHighlights();
+
+  console.log(`🚚 Moved ${piece.type} from (${fromY},${fromX}) to (${toY},${toX})`);
+}
+
+boardElement.addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if (!cell) return;
+
+  const y = parseInt(cell.dataset.y);
+  const x = parseInt(cell.dataset.x);
+
+  const clickedPiece = board[y][x];
 
   if (selectedPiece) {
-    if (validMoves.some(m => m.y === y && m.x === x)) {
-      const [fromY, fromX] = selectedPiece;
-      board[y][x] = board[fromY][fromX];
-      board[fromY][fromX] = 0;
-      console.log(`✅ 이동 완료: (${fromY}, ${fromX}) → (${y}, ${x})`);
-      selectedPiece = null;
-      validMoves = [];
-      isPlayerTurn = false;
-      drawBoard();
-      setTimeout(aiTurn, 500);
+    const { y: fromY, x: fromX, type, owner } = selectedPiece;
+    const validMoves = getValidMoves(type, fromY, fromX, board, owner);
+    const isValid = validMoves.some(([ty, tx]) => ty === y && tx === x);
+    if (isValid) {
+      movePiece(fromY, fromX, y, x);
     } else {
-      console.warn("⚠️ 잘못된 위치 선택");
-      selectedPiece = null;
-      validMoves = [];
-      drawBoard();
+      console.log("❌ Invalid move");
     }
-  } else if (clicked && clicked === clicked.toUpperCase()) {
-    selectedPiece = [y, x];
-    validMoves = getValidMoves(clicked.toUpperCase(), y, x, board, "player");
-    console.log("📍 이동 가능 위치:", validMoves);
-    drawBoard();
+    selectedPiece = null;
+    clearHighlights();
+  } else if (clickedPiece && clickedPiece.owner === turn) {
+    selectedPiece = { y, x, ...clickedPiece };
+    const validMoves = getValidMoves(clickedPiece.type, y, x, board, clickedPiece.owner);
+    clearHighlights();
+    for (let [ty, tx] of validMoves) {
+      const targetCell = document.querySelector(`.cell[data-y='${ty}'][data-x='${tx}']`);
+      if (targetCell) targetCell.classList.add('highlight');
+    }
+    console.log(`🔍 Selected ${clickedPiece.type} at (${y},${x})`);
   }
 });
 
-initBoard();
+// 실행
+onAuthStateChanged(getAuth(), (user) => {
+  if (user) {
+    console.log("🔐 Authenticated as", user.displayName);
+    drawBoard();
+    placeInitialPieces();
+  } else {
+    alert("로그인이 필요합니다");
+    window.location.href = '/login.html';
+  }
+});
