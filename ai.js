@@ -2,7 +2,8 @@
 import { getValidMoves } from './pieces.js';
 
 export function aiTurn(board, currentTurn, moveCallback, endCallback) {
-  console.log("🤖 [AI] 턴 시작 - 현재 턴:", currentTurn);
+  console.log("🤖 [AI 턴 시작]");
+
   const aiPieces = [];
 
   for (let y = 0; y < board.length; y++) {
@@ -14,63 +15,60 @@ export function aiTurn(board, currentTurn, moveCallback, endCallback) {
     }
   }
 
-  console.log(`🤖 [AI] 기물 개수: ${aiPieces.length}`);
+  console.log(`🧠 [AI 기물 수] ${aiPieces.length}개 스캔됨`);
 
-  for (let [priority, label] of [[targetKing, "👑 왕 제거"], [attackEnemy, "⚔️ 공격"], [randomMove, "🎲 일반 이동"]]) {
+  // 우선순위: 왕 제거 가능 > 공격 가능 > 일반 이동
+  for (let priority of [targetKing, attackEnemy, randomMove]) {
     const move = priority(aiPieces, board);
     if (move) {
-      console.log(`✅ [AI 선택] 전략: ${label}`);
-      console.log(`→ 이동: (${move.fromY},${move.fromX}) → (${move.toY},${move.toX})`);
-      const moved = moveCallback(move.fromY, move.fromX, move.toY, move.toX);
-      console.log("🧩 [AI] 이동 결과:", moved);
-
-      if (endCallback) setTimeout(() => {
-        console.log("🔄 [AI] 턴 종료 → 플레이어에게 전환");
-        endCallback();
-      }, 300);
+      console.log(`✅ [AI 이동 결정] ${move.fromY},${move.fromX} → ${move.toY},${move.toX}`);
+      moveCallback(move.fromY, move.fromX, move.toY, move.toX);
+      if (endCallback) setTimeout(endCallback, 300);
       return;
     }
   }
 
-  console.warn("❌ [AI] 가능한 이동 없음 - 턴 건너뜀");
-}
+  console.warn("❌ [AI 실패] 가능한 이동이 없습니다.");
 
-function targetKing(pieces, board) {
-  for (let piece of pieces) {
-    const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
-    for (let [toY, toX] of moves) {
-      const target = board[toY][toX];
-      if (target && target.type === 'WANG' && target.owner !== piece.owner) {
-        return { fromY: piece.y, fromX: piece.x, toY, toX };
+  // === 내부 함수 ===
+
+  function targetKing(pieces, board) {
+    for (let piece of pieces) {
+      const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
+      for (let [toY, toX] of moves) {
+        const target = board[toY][toX];
+        if (target && target.type === 'WANG' && target.owner !== piece.owner) {
+          return { fromY: piece.y, fromX: piece.x, toY, toX };
+        }
       }
     }
+    return null;
   }
-  return null;
-}
 
-function attackEnemy(pieces, board) {
-  const candidates = [];
-  for (let piece of pieces) {
-    const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
-    for (let [toY, toX] of moves) {
-      const target = board[toY][toX];
-      if (target && target.owner !== piece.owner) {
-        candidates.push({ fromY: piece.y, fromX: piece.x, toY, toX });
+  function attackEnemy(pieces, board) {
+    const candidates = [];
+    for (let piece of pieces) {
+      const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
+      for (let [toY, toX] of moves) {
+        const target = board[toY][toX];
+        if (target && target.owner !== piece.owner) {
+          candidates.push({ fromY: piece.y, fromX: piece.x, toY, toX });
+        }
       }
     }
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
   }
-  return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
-}
 
-function randomMove(pieces, board) {
-  const candidates = [];
-  for (let piece of pieces) {
-    const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
-    for (let [toY, toX] of moves) {
-      if (!board[toY][toX] || board[toY][toX].owner !== piece.owner) {
-        candidates.push({ fromY: piece.y, fromX: piece.x, toY, toX });
+  function randomMove(pieces, board) {
+    const candidates = [];
+    for (let piece of pieces) {
+      const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
+      for (let [toY, toX] of moves) {
+        if (!board[toY][toX] || board[toY][toX].owner !== piece.owner) {
+          candidates.push({ fromY: piece.y, fromX: piece.x, toY, toX });
+        }
       }
     }
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
   }
-  return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
 }
