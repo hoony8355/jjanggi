@@ -1,4 +1,4 @@
-// game.js - 짱기 전통 장기판 그리기 + 말 시각 개선
+// game.js - 짱기 전통 장기판 + 디버깅 로그 포함
 import { pieceRules, getValidMoves } from './pieces.js';
 
 const canvas = document.getElementById("board");
@@ -26,11 +26,18 @@ const initialSetup = [
 ];
 
 function initBoard() {
+  console.log("🔧 initBoard 호출됨");
   board = JSON.parse(JSON.stringify(initialSetup));
   drawBoard();
 }
 
 function drawBoard() {
+  if (!ctx) {
+    console.error("❌ canvas context 불러오기 실패");
+    return;
+  }
+
+  console.log("🧱 drawBoard 실행");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "#333";
   ctx.lineWidth = 1.2;
@@ -45,21 +52,21 @@ function drawBoard() {
   // 강 표시
   ctx.fillStyle = "#eef";
   ctx.fillRect(0, 4 * TILE_SIZE, COLS * TILE_SIZE, TILE_SIZE);
+  console.log("🌊 강(한강선) 표시 완료");
 
-  // 궁성 대각선 그리기
+  // 궁성 대각선
   ctx.strokeStyle = "#888";
   ctx.beginPath();
-  // 위 궁성
   ctx.moveTo(3 * TILE_SIZE, 0);
   ctx.lineTo(5 * TILE_SIZE, 2 * TILE_SIZE);
   ctx.moveTo(5 * TILE_SIZE, 0);
   ctx.lineTo(3 * TILE_SIZE, 2 * TILE_SIZE);
-  // 아래 궁성
   ctx.moveTo(3 * TILE_SIZE, 7 * TILE_SIZE);
   ctx.lineTo(5 * TILE_SIZE, 9 * TILE_SIZE);
   ctx.moveTo(5 * TILE_SIZE, 7 * TILE_SIZE);
   ctx.lineTo(3 * TILE_SIZE, 9 * TILE_SIZE);
   ctx.stroke();
+  console.log("🏯 궁성 대각선 표시 완료");
 
   // 말 그리기
   for (let r = 0; r < ROWS; r++) {
@@ -72,6 +79,7 @@ function drawBoard() {
       if (piece) drawPiece(piece, c, r);
     }
   }
+  console.log("♟ 장기말 렌더링 완료");
 }
 
 function drawPiece(piece, col, row) {
@@ -80,7 +88,6 @@ function drawPiece(piece, col, row) {
   const radius = TILE_SIZE * 0.4;
   const color = piece === piece.toUpperCase() ? "blue" : "red";
 
-  // 팔각형 모양
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
     const angle = (Math.PI / 4) * i;
@@ -96,7 +103,6 @@ function drawPiece(piece, col, row) {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // 말 이름
   ctx.fillStyle = color;
   ctx.font = "16px sans-serif";
   ctx.textAlign = "center";
@@ -111,17 +117,21 @@ canvas.addEventListener("click", (e) => {
   const y = Math.floor(e.offsetY / TILE_SIZE);
   const clicked = board[y][x];
 
+  console.log(`🖱 클릭 위치: (${y}, ${x}), 선택된 말:`, clicked);
+
   if (selectedPiece) {
     if (validMoves.some(m => m.y === y && m.x === x)) {
       const [fromY, fromX] = selectedPiece;
       board[y][x] = board[fromY][fromX];
       board[fromY][fromX] = 0;
+      console.log(`✅ 이동 완료: (${fromY}, ${fromX}) → (${y}, ${x})`);
       selectedPiece = null;
       validMoves = [];
       isPlayerTurn = false;
       drawBoard();
       setTimeout(aiTurn, 500);
     } else {
+      console.warn("⚠️ 잘못된 위치 선택");
       selectedPiece = null;
       validMoves = [];
       drawBoard();
@@ -129,6 +139,7 @@ canvas.addEventListener("click", (e) => {
   } else if (clicked && clicked === clicked.toUpperCase()) {
     selectedPiece = [y, x];
     validMoves = getValidMoves(clicked.toUpperCase(), y, x, board, "player");
+    console.log("📍 이동 가능 위치:", validMoves);
     drawBoard();
   }
 });
