@@ -1,29 +1,38 @@
 // game.js - 짱기 메인 게임 로직
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import { board, drawBoard, initBoard, movePiece, turn, isPlayerTurn, setTurn, setIsPlayerTurn } from './pieces.js';
+import {
+  board,
+  drawBoard,
+  initBoard,
+  movePiece,
+  turn,
+  isPlayerTurn,
+  setTurn,
+  setIsPlayerTurn
+} from './pieces.js';
 import { aiTurn } from './ai.js';
 
 let currentUser = null;
 
-// 로그인 확인 및 시작 버튼 활성화
+// 로그인 확인 및 시작 버튼 제어
 onAuthStateChanged(getAuth(), (user) => {
+  currentUser = user;
+  const startBtn = document.getElementById("startBtn");
   if (user) {
     console.log("✅ 로그인됨:", user.displayName);
-    currentUser = user;
-    document.getElementById("startBtn")?.removeAttribute("disabled");
+    startBtn?.removeAttribute("disabled");
   } else {
-    console.warn("⚠️ 로그인되지 않음");
-    alert("로그인이 필요합니다.");
-    document.getElementById("startBtn")?.setAttribute("disabled", "true");
+    console.warn("⚠️ 로그인되지 않음 - 시작 버튼 비활성화");
+    startBtn?.setAttribute("disabled", "true");
   }
 });
 
 // 게임 시작
 function startGame() {
   if (!currentUser) {
-    alert("로그인이 필요합니다.");
-    return;
+    console.warn("🚫 로그인 필요 - 게임 시작 불가");
+    return; // alert 제거
   }
 
   console.log("🎮 게임 시작됨");
@@ -44,13 +53,11 @@ window.handleCellClick = function (r, c) {
   const piece = board[r][c];
 
   if (selected) {
-    // 이동 시도
     if (movePiece(selected.r, selected.c, r, c)) {
       console.log(`🔄 ${selected.r},${selected.c} → ${r},${c}`);
       selected = null;
       setIsPlayerTurn(false);
 
-      // AI 턴 지연 처리
       setTimeout(() => {
         aiTurn(board, 'blue', movePiece, () => {
           setTurn('red');
@@ -63,7 +70,6 @@ window.handleCellClick = function (r, c) {
       selected = null;
     }
   } else if (piece && piece === piece.toUpperCase()) {
-    // 사용자 말 선택
     selected = { r, c };
     console.log(`✅ 선택: ${r},${c}`);
   }
