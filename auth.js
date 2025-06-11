@@ -1,4 +1,4 @@
-// auth.js - Firebase Google 로그인 처리
+// auth.js - Firebase Google 로그인 처리1
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
