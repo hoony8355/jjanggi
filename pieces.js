@@ -1,4 +1,6 @@
 // pieces.js
+// pieces.js 상단 또는 하단에 다음과 같이 추가해야 합니다.
+export { board, drawBoard, initBoard, movePiece, turn, isPlayerTurn, setTurn, setIsPlayerTurn };
 
 export const pieceRules = {
   JOL: {
