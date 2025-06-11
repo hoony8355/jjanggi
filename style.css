@@ -59,25 +59,66 @@ button:hover:not(:disabled) {
   flex-wrap: wrap;
 }
 
-/* Game board */
+/* Game board: 장기 교차점 기반 */
 .board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(10, 1fr);
   max-width: 70vmin;
   aspect-ratio: 9 / 10;
   margin: 0 auto;
   border: 2px solid #333;
+  position: relative;
+  gap: 1px;
+  background-color: #222;
 }
 
-.cell {
+/* 말 교차점 스타일 */
+.intersection {
+  background-color: #fff;
   width: 100%;
   height: 100%;
+  position: relative;
   font-size: clamp(14px, 3vmin, 24px);
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #999;
-  background-color: #fff;
+}
+
+/* 기물 디자인 (정8각형) */
+.piece {
+  width: 70%;
+  aspect-ratio: 1 / 1;
+  background-color: #eee;
+  border: 2px solid #555;
+  clip-path: polygon(
+    30% 0%, 70% 0%,
+    100% 30%, 100% 70%,
+    70% 100%, 30% 100%,
+    0% 70%, 0% 30%
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* 왕성 영역용 X자 선 (기본 위치는 JS에서 좌표로 지정) */
+.palace::before, .palace::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-left: 1px solid #666;
+  border-right: 1px solid #666;
+}
+
+.palace::before {
+  transform: rotate(45deg);
+}
+.palace::after {
+  transform: rotate(-45deg);
 }
 
 /* Stage info */
