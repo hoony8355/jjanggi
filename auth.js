@@ -1,7 +1,13 @@
-// auth.js - Firebase Google 로그인 처리1
+// auth.js - Firebase Google 로그인 처리 v2 (리디렉션 없음 + UI 제어 개선)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA9WYtLGKHfmgVi27MEc_SRCJyAoZEbVzs",
@@ -17,35 +23,43 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// DOM 요소
 const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const userInfo = document.getElementById("user-info");
+const startBtn = document.getElementById("startBtn");
 
-loginBtn.addEventListener("click", () => {
+// 로그인 버튼 이벤트
+loginBtn?.addEventListener("click", () => {
   signInWithPopup(auth, provider)
     .then((result) => {
-      const user = result.user;
-      console.log("로그인 성공:", user);
+      console.log("✅ 로그인 성공:", result.user);
     })
     .catch((error) => {
-      console.error("로그인 오류:", error);
+      console.error("❌ 로그인 실패:", error);
     });
 });
 
-logoutBtn.addEventListener("click", () => {
+// 로그아웃 버튼 이벤트
+logoutBtn?.addEventListener("click", () => {
   signOut(auth).then(() => {
-    console.log("로그아웃 성공");
+    console.log("👋 로그아웃 완료");
   });
 });
 
+// 상태 변화 감지
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-    userInfo.innerHTML = `👤 ${user.displayName}`;
+    console.log("✅ 로그인 상태:", user.displayName);
+    if (loginBtn) loginBtn.style.display = "none";
+    if (logoutBtn) logoutBtn.style.display = "inline-block";
+    if (userInfo) userInfo.textContent = `👤 ${user.displayName}`;
+    if (startBtn) startBtn.disabled = false;
   } else {
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
-    userInfo.innerHTML = "<button id='login-btn'>Google 로그인</button>";
+    console.warn("⚠️ 로그인 필요 - 시작 버튼 비활성화됨");
+    if (loginBtn) loginBtn.style.display = "inline-block";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (userInfo) userInfo.textContent = "로그인 필요";
+    if (startBtn) startBtn.disabled = true;
   }
 });
