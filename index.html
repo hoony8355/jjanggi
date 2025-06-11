@@ -1,57 +1,33 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>짱기 - 전략 장기 게임</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="firebaseService.js"></script>
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="game.js"></script>
+  <script type="module" src="guestbook.js"></script>
 </head>
 <body>
   <header>
-    <h1>짱기</h1>
-    <div id="user-info">
-      <!-- 로그인 정보 표시 영역 -->
-      <button id="login-btn">Google 로그인</button>
-      <button id="logout-btn" style="display: none">로그아웃</button>
-    </div>
+    <h1>짱기 🧠🐴</h1>
+    <p>전략 장기 게임을 시작해보세요!</p>
   </header>
 
   <main>
-    <section id="stage-info">
-      <h2>스테이지 1</h2>
-      <button id="restart-btn">다시하기</button>
-      <button id="surrender-btn">항복하기</button>
-    </section>
+    <button id="startBtn" disabled>게임 시작</button>
+    <button onclick="restart()">🔁 다시하기</button>
+    <button onclick="surrender()">🏳️ 항복하기</button>
 
-    <section id="board-container">
-      <!-- 장기판 그리드가 여기에 생성됩니다 -->
-      <canvas id="board" width="540" height="600"></canvas>
-    </section>
-
-    <section id="controls">
-      <!-- 향후 턴 정보, 이동 로그 등 -->
-      <p>현재 턴: <span id="turn-indicator">플레이어</span></p>
-    </section>
+    <div id="stage-info">스테이지 1</div>
+    <div id="gameBoard" class="board"></div>
   </main>
 
   <footer>
-    <h3>방명록</h3>
-    <form id="guestbook-form">
-      <input type="text" id="nickname" placeholder="닉네임" required />
-      <input type="text" id="comment" placeholder="한 마디 남기기" required />
-      <button type="submit">등록</button>
-    </form>
-    <ul id="guestbook-entries">
-      <!-- 유저 댓글 리스트 -->
-    </ul>
+    <h2>📜 방명록</h2>
+    <div id="guestbook"></div>
   </footer>
-
-<!-- Firebase 초기화부터 먼저 -->
-<script type="module" src="auth.js"></script>
-<script type="module" src="firebaseService.js"></script>
-
-<!-- 그 다음 UI 및 게임 로직 -->
-<script type="module" src="guestbook.js"></script>
-<script type="module" src="game.js"></script>
 </body>
 </html>
