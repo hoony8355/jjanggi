@@ -1,47 +1,65 @@
-// ai.js - 짱기 AI 턴 처리 (기본: 랜덤 이동)1
+// ai.js - 짱기 AI 턴 처리 (1스테이지용 보통 난이도)
+import { getValidMoves } from './pieces.js';
 
-function aiTurn() {
-  // 현재 단순화된 AI: 무작위로 말 선택 + 무작위 이동
+export function aiTurn(board, currentTurn, moveCallback, endCallback) {
   const aiPieces = [];
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 9; c++) {
-      const piece = board[r][c];
-      if (piece && piece === piece.toLowerCase()) {
-        aiPieces.push({ r, c });
+
+  for (let y = 0; y < board.length; y++) {
+    for (let x = 0; x < board[y].length; x++) {
+      const piece = board[y][x];
+      if (piece && piece.owner === currentTurn) {
+        aiPieces.push({ y, x, type: piece.type, owner: piece.owner });
       }
     }
   }
 
-  if (aiPieces.length === 0) {
-    isPlayerTurn = true;
-    return;
-  }
-
-  const randomPiece = aiPieces[Math.floor(Math.random() * aiPieces.length)];
-  const { r, c } = randomPiece;
-
-  const possibleMoves = getAdjacentEmptyTiles(r, c);
-  if (possibleMoves.length > 0) {
-    const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-    board[move.r][move.c] = board[r][c];
-    board[r][c] = 0;
-  }
-
-  drawBoard();
-  isPlayerTurn = true;
-}
-
-function getAdjacentEmptyTiles(r, c) {
-  const deltas = [
-    [-1, 0], [1, 0], [0, -1], [0, 1]
-  ];
-  const moves = [];
-  for (const [dr, dc] of deltas) {
-    const nr = r + dr;
-    const nc = c + dc;
-    if (nr >= 0 && nr < 10 && nc >= 0 && nc < 9 && board[nr][nc] === 0) {
-      moves.push({ r: nr, c: nc });
+  // 우선순위: 왕 제거 가능 > 공격 가능 > 일반 이동
+  for (let priority of [targetKing, attackEnemy, randomMove]) {
+    const move = priority(aiPieces, board);
+    if (move) {
+      moveCallback(move.fromY, move.fromX, move.toY, move.toX);
+      if (endCallback) setTimeout(endCallback, 300);
+      return;
     }
   }
-  return moves;
+
+  function targetKing(pieces, board) {
+    for (let piece of pieces) {
+      const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
+      for (let [toY, toX] of moves) {
+        const target = board[toY][toX];
+        if (target && target.type === 'WANG' && target.owner !== piece.owner) {
+          return { fromY: piece.y, fromX: piece.x, toY, toX };
+        }
+      }
+    }
+    return null;
+  }
+
+  function attackEnemy(pieces, board) {
+    const candidates = [];
+    for (let piece of pieces) {
+      const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
+      for (let [toY, toX] of moves) {
+        const target = board[toY][toX];
+        if (target && target.owner !== piece.owner) {
+          candidates.push({ fromY: piece.y, fromX: piece.x, toY, toX });
+        }
+      }
+    }
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
+  }
+
+  function randomMove(pieces, board) {
+    const candidates = [];
+    for (let piece of pieces) {
+      const moves = getValidMoves(piece.type, piece.y, piece.x, board, piece.owner);
+      for (let [toY, toX] of moves) {
+        if (!board[toY][toX] || board[toY][toX].owner !== piece.owner) {
+          candidates.push({ fromY: piece.y, fromX: piece.x, toY, toX });
+        }
+      }
+    }
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
+  }
 }
