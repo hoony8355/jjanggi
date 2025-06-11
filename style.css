@@ -1,38 +1,47 @@
-/* style.css - 짱기 기본 스타일 + 반응형 */
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Reset and base layout */
+* {
   margin: 0;
   padding: 0;
-  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
   color: #333;
-  text-align: center;
+  padding: 20px;
+  line-height: 1.6;
 }
 
+/* Header */
 header {
-  background-color: #333;
-  color: #fff;
-  padding: 1rem;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-main {
-  padding: 1rem;
+#auth-ui {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
 
+/* Buttons */
 button {
-  margin: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
+  padding: 10px 16px;
   background-color: #007bff;
   color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 button:disabled {
-  background-color: #ccc;
+  background-color: #888;
   cursor: not-allowed;
 }
 
@@ -40,78 +49,57 @@ button:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
+/* Game board */
 .board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: 2px;
-  max-width: 100%;
-  margin: 1rem auto;
-  border: 2px solid #333;
+  max-width: 90vmin;
   aspect-ratio: 9 / 10;
+  margin: 20px auto;
+  border: 2px solid #333;
 }
 
-.board-cell {
+.cell {
   width: 100%;
-  padding-top: 100%;
-  position: relative;
-  background-color: #fffbe6;
-  border: 1px solid #999;
-}
-
-.board-cell .piece {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.2rem;
-  border: 1px solid #444;
-  border-radius: 50%;
-  padding: 0.3rem;
-  background-color: #fff;
-  min-width: 2rem;
-  min-height: 2rem;
+  height: 100%;
+  font-size: clamp(14px, 3vmin, 24px);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  border: 1px solid #999;
+  background-color: #fff;
 }
 
+/* Stage info */
+#stage-info {
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
+  font-size: 1.2rem;
+}
+
+/* Guestbook */
 footer {
-  background-color: #f0f0f0;
-  padding: 1rem;
-  margin-top: 2rem;
-  border-top: 1px solid #ccc;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #ccc;
+  text-align: center;
 }
 
-/* 반응형 대응 */
-@media (max-width: 768px) {
-  .board-cell .piece {
-    font-size: 1rem;
-    padding: 0.2rem;
-  }
+#guestbook {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: left;
+}
 
+/* Responsive tweaks */
+@media (max-width: 600px) {
   button {
     font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
+    padding: 8px 12px;
   }
-}
 
-@media (max-width: 480px) {
   .board {
-    width: 90vw;
-    grid-template-columns: repeat(9, 1fr);
+    max-width: 95vmin;
   }
-
-  .board-cell {
-    padding-top: 100%;
-  }
-
-  .board-cell .piece {
-    font-size: 0.8rem;
-  }
-}
-
-#stage-info {
-  font-weight: bold;
-  margin: 1rem 0;
-  font-size: 1.2rem;
 }
