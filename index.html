@@ -6,16 +6,17 @@
   <title>짱기 - 전략 장기 게임</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- favicon 경고 방지 -->
+  <!-- Favicon 경고 방지용 (빈 데이터) -->
   <link rel="icon" href="data:,">
 </head>
 <body>
   <header>
     <h1>짱기 🧠🐴</h1>
     <p>전략 장기 게임을 시작해보세요!</p>
-    <div id="auth-ui">
-      <button id="login-btn">Google 로그인</button>
-      <button id="logout-btn" style="display:none;">로그아웃</button>
+
+    <div id="auth-ui" class="centered">
+      <button id="login-btn">🔐 Google 로그인</button>
+      <button id="logout-btn" style="display:none;">🚪 로그아웃</button>
       <span id="user-info"></span>
     </div>
   </header>
@@ -23,14 +24,14 @@
   <main>
     <div id="stage-info">스테이지 1</div>
 
-    <div class="game-controls">
+    <div class="game-controls centered">
       <button id="startBtn" disabled>🎮 게임 시작</button>
-      <button onclick="restart()">🔁 다시하기</button>
-      <button onclick="surrender()">🏳️ 항복하기</button>
+      <button id="restartBtn">🔁 다시하기</button>
+      <button id="surrenderBtn">🏳️ 항복하기</button>
     </div>
 
-    <div id="gameBoard" class="board"></div>
-    <div id="status-msg"></div>
+    <div id="gameBoard" class="board" aria-label="장기판"></div>
+    <div id="status-msg" class="centered" aria-live="polite"></div>
   </main>
 
   <footer>
@@ -38,9 +39,9 @@
     <div id="guestbook"></div>
   </footer>
 
-  <div id="debug-log" style="padding:1rem; background:#f9f9f9; font-size:12px; color:#555;"></div>
+  <div id="debug-log" class="debug-log" aria-label="디버깅 로그"></div>
 
-  <!-- 🔥 모듈 순서 중요 -->
+  <!-- 📦 모듈 스크립트 순서 중요 -->
   <script type="module" src="firebaseService.js"></script>
   <script type="module" src="auth.js"></script>
   <script type="module" src="game.js"></script>
