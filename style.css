@@ -21,11 +21,11 @@ header {
 
 #auth-ui {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-top: 10px;
 }
 
 /* Buttons */
@@ -49,13 +49,23 @@ button:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
+/* Game controls */
+.game-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
 /* Game board */
 .board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  max-width: 90vmin;
+  max-width: 70vmin;
   aspect-ratio: 9 / 10;
-  margin: 20px auto;
+  margin: 0 auto;
   border: 2px solid #333;
 }
 
@@ -76,6 +86,17 @@ button:hover:not(:disabled) {
   font-weight: bold;
   margin: 10px 0;
   font-size: 1.2rem;
+}
+
+/* Debug log */
+#debug-log {
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 10px;
+  font-size: 0.85rem;
+  color: #555;
+  background-color: #f9f9f9;
+  border-left: 3px solid #007bff;
 }
 
 /* Guestbook */
@@ -101,5 +122,15 @@ footer {
 
   .board {
     max-width: 95vmin;
+  }
+
+  .game-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #auth-ui {
+    flex-direction: column;
+    gap: 10px;
   }
 }
