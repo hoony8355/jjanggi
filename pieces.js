@@ -1,77 +1,97 @@
-// pieces.js
+// pieces.js - 짱기 기물 및 보드 상태 관리 모듈
 
-console.log("[📦 pieces.js] 모듈 로드됨");
+export let board = [];
 
-// 게임 상태 변수
-export let board = Array.from({ length: 10 }, () => Array(9).fill(null));
-export let turn = 'red';
-let playerTurn = true;
-
-export function setTurn(newTurn) {
-  console.log(`[🔄 턴 변경] ${turn} → ${newTurn}`);
-  turn = newTurn;
-}
-export function isPlayerTurn() {
-  return playerTurn;
-}
-export function setIsPlayerTurn(val) {
-  console.log(`[🎯 플레이어 턴 설정] ${val}`);
-  playerTurn = val;
-}
-
-// 초기 기물 배치
+// 보드 초기화
 export function initBoard() {
-  console.log("[🧩 보드 초기화]");
-  board = Array.from({ length: 10 }, () => Array(9).fill(null));
-  // 예시 배치 (기본 피스만 일부 배치)
-  board[9][4] = { id: "JOL", owner: "red" };
-  board[0][4] = { id: "JOL", owner: "blue" };
+  board = Array.from({ length: 10 }, (_, r) =>
+    Array.from({ length: 9 }, (_, c) => null)
+  );
+
+  // 기본 기물 배치 (예시)
+  board[0][4] = { id: "왕", type: "WANG", owner: "blue" };
+  board[9][4] = { id: "왕", type: "WANG", owner: "red" };
 }
 
-// 보드 그리기
+// 보드 렌더링
 export function drawBoard() {
-  console.log("[🧱 drawBoard] 보드 렌더링 시작");
   const container = document.getElementById("gameBoard");
-  if (!container) return console.warn("❌ gameBoard DOM 요소 없음");
-
-  container.innerHTML = "";
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 9; c++) {
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.dataset.row = r;
-      cell.dataset.col = c;
-      cell.onclick = () => window.handleCellClick(r, c);
-
-      const piece = board[r][c];
-      if (piece) {
-        cell.textContent = piece.id[0] + (piece.owner === 'red' ? '🔴' : '🔵');
-      }
-
-      container.appendChild(cell);
-    }
+  if (!container) {
+    console.error("❌ [DOM] gameBoard 요소를 찾을 수 없습니다.");
+    return;
   }
+  container.innerHTML = "";
+
+  board.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      const div = document.createElement("div");
+      div.className = "cell";
+      div.dataset.row = r;
+      div.dataset.col = c;
+      div.onclick = () => window.handleCellClick(r, c);
+      if (cell) div.textContent = cell.id;
+      container.appendChild(div);
+    });
+  });
 }
 
-// 이동 처리
-export function movePiece(fromY, fromX, toY, toX) {
-  const piece = board[fromY][fromX];
+// 기물 이동
+export function movePiece(fromR, fromC, toR, toC) {
+  const piece = board[fromR][fromC];
+  const target = board[toR][toC];
+
   if (!piece) return false;
+  const validMoves = getValidMoves(piece.type, fromR, fromC, board, piece.owner);
+  const isValid = validMoves.some(([r, c]) => r === toR && c === toC);
+  if (!isValid) return false;
 
-  const moves = getValidMoves(piece.id, fromY, fromX, board, piece.owner);
-  const valid = moves.some(([y, x]) => y === toY && x === toX);
-
-  if (!valid) {
-    console.warn(`[❌ 이동 실패] ${fromY},${fromX} → ${toY},${toX}`);
-    return false;
-  }
-
-  const target = board[toY][toX];
-  if (target) console.log(`[💥 공격] ${piece.id}가 ${target.id} 제거`);
-
-  board[toY][toX] = piece;
-  board[fromY][fromX] = null;
-
-  console.log(`[✅ 이동 성공] ${fromY},${fromX} → ${toY},${toX}`);
+  board[toR][toC] = piece;
+  board[fromR][fromC] = null;
+  drawBoard();
   return true;
 }
+
+// 턴 관련 상태
+let turn = "red";
+let isPlayerTurn = true;
+
+export function setTurn(value) {
+  turn = value;
+}
+export function getTurn() {
+  return turn;
+}
+export function setIsPlayerTurn(value) {
+  isPlayerTurn = value;
+}
+export function isPlayerTurnFn() {
+  return isPlayerTurn;
+}
+
+// 기물 이동 가능 위치 계산 (단순 룰 예시)
+export function getValidMoves(type, r, c, board, owner) {
+  const directions = {
+    WANG: [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
+    ],
+  };
+  const moves = [];
+
+  for (const [dy, dx] of directions[type] || []) {
+    const nr = r + dy;
+    const nc = c + dx;
+    if (nr >= 0 && nr < 10 && nc >= 0 && nc < 9) {
+      const target = board[nr][nc];
+      if (!target || target.owner !== owner) {
+        moves.push([nr, nc]);
+      }
+    }
+  }
+
+  return moves;
+}
+
+export { isPlayerTurnFn as isPlayerTurn, turn };
