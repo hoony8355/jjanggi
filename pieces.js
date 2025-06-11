@@ -1,98 +1,162 @@
-// pieces.js - 장기말 이동 규칙 정의 및 해석기
+// pieces.js
 
 export const pieceRules = {
-  "JOL": {
-    type: "forward1",
-    canTurnAfterRiver: true
-  },
-  "CHA": {
-    type: "straight",
-    range: "unlimited",
-    jump: false
-  },
-  "MA": {
-    type: "knight",
-    blockedBy: "center"
-  },
-  "SANG": {
-    type: "elephant",
-    blockedBy: "middle"
-  },
-  "PO": {
-    type: "cannon",
-    requiresJumpToAttack: true
-  },
-  "SA": {
-    type: "palace-diagonal",
-    range: 1
-  },
-  "WANG": {
-    type: "palace-omni",
-    range: 1
-  },
-  "화염차": {
-    type: "move1",
-    onDeath: "explode",
-    range: 1
-  },
-  "지원사": {
-    type: "palace-diagonal",
-    passive: {
-      boost: "JOL",
-      effect: "+1 range"
-    }
-  }
-};
+  JOL: {
+    name: "졸",
+    type: "soldier",
+    cost: 1,
+    getMoves: (y, x, board, owner) => {
+      const moves = [];
+      const dir = owner === 'red' ? -1 : 1;
 
-export function getValidMoves(pieceId, y, x, board, owner) {
-  const rule = pieceRules[pieceId];
-  if (!rule) return [];
-  const moves = [];
+      // 전진
+      if (inBounds(y + dir, x)) moves.push([y + dir, x]);
 
-  switch (rule.type) {
-    case "forward1": {
-      const dy = owner === "player" ? -1 : 1;
-      const ny = y + dy;
-      if (ny >= 0 && ny < 10 && board[ny][x] === 0) {
-        moves.push({ y: ny, x });
+      // 좌우 이동은 항상 가능
+      if (inBounds(y, x - 1)) moves.push([y, x - 1]);
+      if (inBounds(y, x + 1)) moves.push([y, x + 1]);
+
+      // 궁 내 대각선
+      moves.push(...getPalaceDiagonals(y, x, owner));
+      return moves;
+    },
+  },
+
+  CHA: {
+    name: "차",
+    type: "chariot",
+    cost: 5,
+    getMoves: (y, x, board, owner) => {
+      return [
+        ...linearMoves(y, x, board, owner, -1, 0),
+        ...linearMoves(y, x, board, owner, 1, 0),
+        ...linearMoves(y, x, board, owner, 0, -1),
+        ...linearMoves(y, x, board, owner, 0, 1),
+        ...getPalaceDiagonals(y, x, owner, true)
+      ];
+    },
+  },
+
+  MA: {
+    name: "마",
+    type: "horse",
+    cost: 3,
+    getMoves: (y, x, board, owner) => {
+      const moves = [];
+      const steps = [
+        [-1, 0, -2, -1], [-1, 0, -2, 1],
+        [1, 0, 2, -1], [1, 0, 2, 1],
+        [0, -1, -1, -2], [0, -1, 1, -2],
+        [0, 1, -1, 2], [0, 1, 1, 2],
+      ];
+      for (let [dy1, dx1, dy2, dx2] of steps) {
+        const ny1 = y + dy1, nx1 = x + dx1;
+        const ny2 = y + dy2, nx2 = x + dx2;
+        if (inBounds(ny2, nx2) && !board[ny1][nx1]) {
+          moves.push([ny2, nx2]);
+        }
       }
-      break;
-    }
+      return moves;
+    },
+  },
 
-    case "straight": {
-      [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dy, dx]) => {
-        let ny = y + dy;
-        let nx = x + dx;
-        while (ny >= 0 && ny < 10 && nx >= 0 && nx < 9) {
-          if (board[ny][nx] === 0) {
-            moves.push({ y: ny, x: nx });
-          } else {
-            if ((owner === "player" && board[ny][nx] !== board[ny][nx].toUpperCase()) ||
-                (owner === "ai" && board[ny][nx] !== board[ny][nx].toLowerCase())) {
-              moves.push({ y: ny, x: nx });
+  SANG: {
+    name: "상",
+    type: "elephant",
+    cost: 3,
+    getMoves: (y, x, board, owner) => {
+      const moves = [];
+      const steps = [
+        [-1, -1, -2, -2], [-1, 1, -2, 2],
+        [1, -1, 2, -2], [1, 1, 2, 2]
+      ];
+      for (let [dy1, dx1, dy2, dx2] of steps) {
+        const ny1 = y + dy1, nx1 = x + dx1;
+        const ny2 = y + dy2, nx2 = x + dx2;
+        if (inBounds(ny2, nx2) && !board[ny1][nx1]) {
+          moves.push([ny2, nx2]);
+        }
+      }
+      return moves;
+    },
+  },
+
+  PO: {
+    name: "포",
+    type: "cannon",
+    cost: 4,
+    getMoves: (y, x, board, owner) => {
+      const moves = [];
+      const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      for (let [dy, dx] of directions) {
+        let ny = y + dy, nx = x + dx;
+        let jumped = false;
+        while (inBounds(ny, nx)) {
+          if (!jumped && board[ny][nx]) {
+            jumped = true;
+          } else if (jumped) {
+            if (board[ny][nx]) {
+              if (board[ny][nx].owner !== owner && board[ny][nx].type !== 'cannon') {
+                moves.push([ny, nx]);
+              }
+              break;
+            } else {
+              ny += dy;
+              nx += dx;
+              continue;
             }
-            break;
           }
           ny += dy;
           nx += dx;
         }
-      });
+      }
+      // 궁 내 대각선 이동 가능
+      moves.push(...getPalaceDiagonals(y, x, owner, true));
+      return moves;
+    },
+  },
+};
+
+// Helper functions
+function inBounds(y, x) {
+  return y >= 0 && y < 10 && x >= 0 && x < 9;
+}
+
+function linearMoves(y, x, board, owner, dy, dx) {
+  const moves = [];
+  let ny = y + dy, nx = x + dx;
+  while (inBounds(ny, nx)) {
+    if (!board[ny][nx]) {
+      moves.push([ny, nx]);
+    } else {
+      if (board[ny][nx].owner !== owner) moves.push([ny, nx]);
       break;
     }
-
-    case "move1": {
-      [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dy, dx]) => {
-        const ny = y + dy;
-        const nx = x + dx;
-        if (ny >= 0 && ny < 10 && nx >= 0 && nx < 9 && board[ny][nx] === 0) {
-          moves.push({ y: ny, x: nx });
-        }
-      });
-      break;
-    }
-
-    // TODO: 향후 knight, elephant, cannon 등 추가 구현
+    ny += dy;
+    nx += dx;
   }
-
   return moves;
+}
+
+function getPalaceDiagonals(y, x, owner, allowAll = false) {
+  const palaceCenters = owner === 'red' ? [[0, 4]] : [[9, 4]];
+  const deltas = [
+    [-1, -1], [-1, 1], [1, -1], [1, 1]
+  ];
+  const moves = [];
+  for (let [cy, cx] of palaceCenters) {
+    for (let [dy, dx] of deltas) {
+      const ny = y + dy, nx = x + dx;
+      if (Math.abs(ny - cy) <= 1 && Math.abs(nx - cx) <= 1 && inBounds(ny, nx)) {
+        moves.push([ny, nx]);
+      }
+    }
+  }
+  return allowAll ? moves : moves.filter(([ny, nx]) => ny !== y || nx !== x);
+}
+
+export function getValidMoves(pieceId, y, x, board, owner) {
+  const piece = pieceRules[pieceId];
+  if (!piece) return [];
+  return piece.getMoves(y, x, board, owner);
 }
