@@ -1,4 +1,4 @@
-/* Reset and base layout */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
@@ -7,10 +7,9 @@
 
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
+  background-color: #f8f8f8;
+  color: #222;
   padding: 20px;
-  line-height: 1.6;
 }
 
 /* Header */
@@ -59,43 +58,90 @@ button:hover:not(:disabled) {
   flex-wrap: wrap;
 }
 
-/* Game board: 장기 교차점 기반 */
+/* Game board */
 .board {
   position: relative;
-  max-width: 70vmin;
+  width: 90vmin;
   aspect-ratio: 9 / 10;
   margin: 0 auto;
-  background-color: #fff;
-  border: 2px solid #333;
+  background-color: #fdf6e3;
+  border: 2px solid #222;
 }
 
-/* 그리드 선 생성 */
-.board::before {
-  content: '';
+/* Grid lines */
+.board::before,
+.board::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  background-image: 
-    repeating-linear-gradient(to right, transparent 0%, transparent calc(100% / 9 - 1px), #666 calc(100% / 9 - 1px), #666 calc(100% / 9)),
-    repeating-linear-gradient(to bottom, transparent 0%, transparent calc(100% / 10 - 1px), #666 calc(100% / 10 - 1px), #666 calc(100% / 10));
-  background-size: 100% 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(to right, black 1px, transparent 1px),
+    linear-gradient(to bottom, black 1px, transparent 1px);
+  background-size: calc(100% / 8) calc(100% / 9);
   pointer-events: none;
 }
 
-/* 교차점 위치 설정 */
+/* Palace lines (X shape) */
+.palace-line {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.palace-line::before,
+.palace-line::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background-color: #555;
+  transform-origin: center;
+}
+
+.palace-top::before {
+  transform: rotate(45deg);
+  left: 33.33%;
+  top: 0;
+}
+
+.palace-top::after {
+  transform: rotate(-45deg);
+  left: 66.66%;
+  top: 0;
+}
+
+.palace-bottom::before {
+  transform: rotate(-45deg);
+  left: 33.33%;
+  bottom: 0;
+}
+
+.palace-bottom::after {
+  transform: rotate(45deg);
+  left: 66.66%;
+  bottom: 0;
+}
+
+/* 말 위치 교차점 */
 .intersection {
   position: absolute;
-  width: 2.5%;
-  height: 2.5%;
+  width: 4%;
+  height: 4%;
   transform: translate(-50%, -50%);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2;
+  pointer-events: auto;
 }
 
-/* 기물 디자인 (정8각형) */
+/* 정8각형 기물 디자인 */
 .piece {
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 100%;
   background-color: #eee;
   border: 2px solid #555;
   clip-path: polygon(
@@ -109,36 +155,12 @@ button:hover:not(:disabled) {
   align-items: center;
   font-weight: bold;
   font-size: 0.9rem;
-  text-align: center;
-  z-index: 3;
+  color: #000;
 }
 
-/* 말 크기 조정 (말 종류별) */
-.piece[data-type="WANG"] { width: 5.5vmin; }
-.piece[data-type="SA"]   { width: 5vmin; }
-.piece[data-type="SANG"] { width: 4.5vmin; }
-.piece[data-type="MA"]   { width: 4.5vmin; }
-.piece[data-type="CHA"]  { width: 5vmin; }
-.piece[data-type="PO"]   { width: 4.5vmin; }
-.piece[data-type="JOL"]  { width: 4vmin; }
-
-/* 왕성 영역용 X자 선 (중앙 3x3 안) */
-.palace-line {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-.palace-line::before, .palace-line::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-left: 1px solid #666;
-  border-right: 1px solid #666;
-}
-.palace-line::before { transform: rotate(45deg); }
-.palace-line::after  { transform: rotate(-45deg); }
+/* 색상 구분 */
+.piece.red { background-color: #ffdddd; }
+.piece.blue { background-color: #ddeeff; }
 
 /* Stage info */
 #stage-info {
