@@ -1,4 +1,5 @@
-// game.js - 짱기 기본 장기판 렌더링 및 턴 처리
+// game.js - 짱기 기본 장기판 렌더링 및 턴 처리 + 규칙 기반 이동
+import { pieceRules, getValidMoves } from './pieces.js';
 
 const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
@@ -8,11 +9,10 @@ const COLS = 9;
 
 let board = [];
 let selectedPiece = null;
+let validMoves = [];
 let isPlayerTurn = true;
 
-// 기본 장기말 초기 배치 (샘플)
 const initialSetup = [
-  // 0 = 빈칸, 그 외는 말의 타입 문자열
   ["cha", "ma", "sang", "sa", "wang", "sa", "sang", "ma", "cha"],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, "po", 0, 0, 0, 0, 0, "po", 0],
@@ -37,6 +37,11 @@ function drawBoard() {
       ctx.strokeStyle = "#333";
       ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
+      if (selectedPiece && validMoves.some(m => m.y === r && m.x === c)) {
+        ctx.fillStyle = "#d0f0d0";
+        ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      }
+
       const piece = board[r][c];
       if (piece) {
         ctx.fillStyle = piece === piece.toUpperCase() ? "blue" : "red";
@@ -54,27 +59,28 @@ canvas.addEventListener("click", (e) => {
 
   const x = Math.floor(e.offsetX / TILE_SIZE);
   const y = Math.floor(e.offsetY / TILE_SIZE);
-
   const clicked = board[y][x];
 
   if (selectedPiece) {
-    const [fromY, fromX] = selectedPiece;
-    board[y][x] = board[fromY][fromX];
-    board[fromY][fromX] = 0;
-    selectedPiece = null;
-    isPlayerTurn = false;
-    drawBoard();
-
-    setTimeout(aiTurn, 500);
+    if (validMoves.some(m => m.y === y && m.x === x)) {
+      const [fromY, fromX] = selectedPiece;
+      board[y][x] = board[fromY][fromX];
+      board[fromY][fromX] = 0;
+      selectedPiece = null;
+      validMoves = [];
+      isPlayerTurn = false;
+      drawBoard();
+      setTimeout(aiTurn, 500);
+    } else {
+      selectedPiece = null;
+      validMoves = [];
+      drawBoard();
+    }
   } else if (clicked && clicked === clicked.toUpperCase()) {
     selectedPiece = [y, x];
+    validMoves = getValidMoves(clicked.toUpperCase(), y, x, board, "player");
+    drawBoard();
   }
 });
 
-function aiTurn() {
-  // TODO: 간단한 랜덤 이동 AI (임시용)
-  isPlayerTurn = true;
-}
-
 initBoard();
-
