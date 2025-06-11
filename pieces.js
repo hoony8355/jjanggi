@@ -30,27 +30,54 @@ export function initBoard() {
 }
 
 export function drawBoard() {
-  const gameBoard = document.getElementById("gameBoard");
-  gameBoard.innerHTML = "";
-  gameBoard.style.gridTemplateColumns = `repeat(9, 1fr)`;
-  gameBoard.style.gridTemplateRows = `repeat(10, 1fr)`;
+  const boardEl = document.getElementById('gameBoard');
+  boardEl.innerHTML = '';
 
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 9; c++) {
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.onclick = () => handleCellClick(r, c);
+  for (let y = 0; y < board.length; y++) {
+    for (let x = 0; x < board[y].length; x++) {
+      const intersection = document.createElement('div');
+      intersection.className = 'intersection';
 
-      const piece = board[r][c];
-      if (piece) {
-        const symbol = getSymbol(piece.type, piece.owner);
-        cell.innerHTML = `<div class="piece ${piece.owner}">${symbol}</div>`;
+      // 왕성 구역이면 palace 클래스 추가 (양 진영 중앙 3칸의 3x3 안쪽)
+      const isPalace = (
+        (y >= 0 && y <= 2 && x >= 3 && x <= 5) ||
+        (y >= 7 && y <= 9 && x >= 3 && x <= 5)
+      );
+      if (isPalace && ((y === x) || (x + y === 8))) {
+        intersection.classList.add('palace');
       }
 
-      gameBoard.appendChild(cell);
+      // 기물이 존재하면 렌더링
+      const piece = board[y][x];
+      if (piece) {
+        const pieceEl = document.createElement('div');
+        pieceEl.className = 'piece';
+        pieceEl.textContent = getPieceLabel(piece.type);
+        pieceEl.style.backgroundColor = piece.owner === 'red' ? '#ffdddd' : '#ddeeff';
+        intersection.appendChild(pieceEl);
+      }
+
+      intersection.addEventListener('click', () => window.handleCellClick(y, x));
+      boardEl.appendChild(intersection);
     }
   }
 }
+
+// 기물 타입 라벨 (예시: 한글 or 기호)
+function getPieceLabel(type) {
+  const labels = {
+    WANG: '왕',
+    CHA: '차',
+    MA: '마',
+    SANG: '상',
+    SA: '사',
+    PO: '포',
+    BYEONG: '병',
+    // 필요 시 추가
+  };
+  return labels[type] || type;
+}
+
 
 function getSymbol(type, owner) {
   const symbols = {
