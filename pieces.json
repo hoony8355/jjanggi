@@ -1,0 +1,90 @@
+// pieces.json (in-memory 객체 형태로 예시 구성)
+export const pieceRules = {
+  "졸": {
+    "type": "forward1",
+    "canTurnAfterRiver": true
+  },
+  "차": {
+    "type": "straight",
+    "range": "unlimited",
+    "jump": false
+  },
+  "마": {
+    "type": "knight",
+    "blockedBy": "center"
+  },
+  "상": {
+    "type": "elephant",
+    "blockedBy": "middle"
+  },
+  "포": {
+    "type": "cannon",
+    "requiresJumpToAttack": true
+  },
+  "사": {
+    "type": "palace-diagonal",
+    "range": 1
+  },
+  "왕": {
+    "type": "palace-omni",
+    "range": 1
+  },
+  "화염차": {
+    "type": "move1",
+    "onDeath": "explode",
+    "range": 1
+  },
+  "지원사": {
+    "type": "palace-diagonal",
+    "passive": {
+      "boost": "졸",
+      "effect": "+1 range"
+    }
+  }
+};
+
+// getValidMoves - 말 규칙 해석기 뼈대
+export function getValidMoves(pieceId, y, x, board, owner) {
+  const rule = pieceRules[pieceId];
+  if (!rule) return [];
+  const moves = [];
+
+  switch (rule.type) {
+    case "forward1":
+      if (owner === "player" && y > 0 && board[y - 1][x] === 0) {
+        moves.push({ y: y - 1, x });
+      }
+      break;
+
+    case "straight":
+      [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dy, dx]) => {
+        let ny = y + dy;
+        let nx = x + dx;
+        while (ny >= 0 && ny < 10 && nx >= 0 && nx < 9) {
+          if (board[ny][nx] === 0) {
+            moves.push({ y: ny, x: nx });
+          } else {
+            moves.push({ y: ny, x: nx });
+            break;
+          }
+          ny += dy;
+          nx += dx;
+        }
+      });
+      break;
+
+    case "move1":
+      [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dy, dx]) => {
+        const ny = y + dy;
+        const nx = x + dx;
+        if (ny >= 0 && ny < 10 && nx >= 0 && nx < 9 && board[ny][nx] === 0) {
+          moves.push({ y: ny, x: nx });
+        }
+      });
+      break;
+
+    // ... 나머지 규칙들도 확장 가능
+  }
+
+  return moves;
+}
