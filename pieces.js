@@ -1,75 +1,89 @@
 export let board = [];
 
+// 전통 장기 배치로 초기화
 export function initBoard() {
-  board = Array.from({ length: 10 }, () => Array(9).fill(null));
+  board = Array(10).fill(null).map(() => Array(9).fill(null));
 
-  const placePieces = (owner, baseRow, pawnRow) => {
-    const prefix = owner === 'red' ? 'R' : 'B';
-    board[baseRow] = [
-      { type: 'CHA', owner, id: `${prefix}-CHA-1` },
-      { type: 'MA', owner, id: `${prefix}-MA-1` },
-      { type: 'SANG', owner, id: `${prefix}-SANG-1` },
-      { type: 'SA', owner, id: `${prefix}-SA-1` },
-      { type: 'WANG', owner, id: `${prefix}-WANG` },
-      { type: 'SA', owner, id: `${prefix}-SA-2` },
-      { type: 'SANG', owner, id: `${prefix}-SANG-2` },
-      { type: 'MA', owner, id: `${prefix}-MA-2` },
-      { type: 'CHA', owner, id: `${prefix}-CHA-2` }
+  const red = 'red';
+  const blue = 'blue';
+
+  const placePieces = (owner, rowMain, rowPo, rowJol) => {
+    const prefix = owner === red ? 'R' : 'B';
+
+    // 주요 기물 (차 마 상 사 왕 사 상 마 차)
+    const mainPieces = [
+      'CHA', 'MA', 'SANG', 'SA', 'WANG', 'SA', 'SANG', 'MA', 'CHA'
     ];
-    board[baseRow + (owner === 'red' ? -1 : 1)][1] = { type: 'PO', owner, id: `${prefix}-PO-1` };
-    board[baseRow + (owner === 'red' ? -1 : 1)][7] = { type: 'PO', owner, id: `${prefix}-PO-2` };
+    mainPieces.forEach((type, idx) => {
+      board[rowMain][idx] = {
+        type,
+        owner,
+        id: `${prefix}-${type}-${idx + 1}`
+      };
+    });
 
+    // 포
+    board[rowPo][1] = { type: 'PO', owner, id: `${prefix}-PO-1` };
+    board[rowPo][7] = { type: 'PO', owner, id: `${prefix}-PO-2` };
+
+    // 졸/병
     for (let i = 0; i < 9; i += 2) {
-      board[pawnRow][i] = { type: 'JOL', owner, id: `${prefix}-JOL-${(i + 1) / 2}` };
+      board[rowJol][i] = {
+        type: 'JOL',
+        owner,
+        id: `${prefix}-JOL-${(i + 1) / 2 + 1}`
+      };
     }
   };
 
-  placePieces('red', 9, 6);
-  placePieces('blue', 0, 3);
+  // 홍(red): 아래쪽, 청(blue): 위쪽
+  placePieces(red, 9, 7, 6);
+  placePieces(blue, 0, 2, 3);
 }
 
+// 보드 렌더링
 export function drawBoard() {
   const boardEl = document.getElementById('gameBoard');
   boardEl.innerHTML = '';
 
-  for (let y = 0; y < board.length; y++) {
-    for (let x = 0; x < board[y].length; x++) {
-      const cell = document.createElement('div');
-      cell.className = 'intersection';
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 9; x++) {
+      const intersection = document.createElement('div');
+      intersection.className = 'intersection';
 
-      // 왕성 내부 대각선
-      if (
+      // 왕성 구역이면 palace 클래스 추가
+      const isPalace =
         ((y >= 0 && y <= 2 && x >= 3 && x <= 5) ||
-         (y >= 7 && y <= 9 && x >= 3 && x <= 5)) &&
-        ((y === x) || (x + y === 8))
-      ) {
-        cell.classList.add('palace');
+         (y >= 7 && y <= 9 && x >= 3 && x <= 5));
+
+      if (isPalace && ((y === x) || (x + y === 8))) {
+        intersection.classList.add('palace');
       }
 
       const piece = board[y][x];
       if (piece) {
         const pieceEl = document.createElement('div');
         pieceEl.className = 'piece';
-        pieceEl.textContent = getPieceSymbol(piece.type, piece.owner);
+        pieceEl.textContent = getSymbol(piece.type, piece.owner);
         pieceEl.style.backgroundColor = piece.owner === 'red' ? '#ffdddd' : '#ddeeff';
-        cell.appendChild(pieceEl);
+        intersection.appendChild(pieceEl);
       }
 
-      cell.addEventListener('click', () => window.handleCellClick(y, x));
-      boardEl.appendChild(cell);
+      intersection.addEventListener('click', () => window.handleCellClick(y, x));
+      boardEl.appendChild(intersection);
     }
   }
 }
 
-function getPieceSymbol(type, owner) {
+function getSymbol(type, owner) {
   const symbols = {
-    WANG: owner === 'red' ? '帥' : '將',
     CHA: '車',
     MA: '馬',
     SANG: '象',
     SA: '士',
     PO: '包',
-    JOL: owner === 'red' ? '兵' : '卒'
+    WANG: owner === 'red' ? '帥' : '將',
+    JOL: owner === 'red' ? '兵' : '卒',
   };
   return symbols[type] || '?';
 }
@@ -84,6 +98,12 @@ export function movePiece(fromR, fromC, toR, toC) {
 }
 
 export let turn = 'red';
-export function setTurn(t) { turn = t; }
-export function isPlayerTurn() { return turn === 'red'; }
-export function setIsPlayerTurn(val) {}
+export function setTurn(t) {
+  turn = t;
+}
+export function isPlayerTurn() {
+  return turn === 'red';
+}
+export function setIsPlayerTurn(val) {
+  // 확장용 placeholder
+}
