@@ -46,9 +46,12 @@
     </ul>
   </footer>
 
-<script type="module" src="game.js"></script>
+<!-- Firebase 초기화부터 먼저 -->
 <script type="module" src="auth.js"></script>
-<script type="module" src="guestbook.js"></script>
 <script type="module" src="firebaseService.js"></script>
+
+<!-- 그 다음 UI 및 게임 로직 -->
+<script type="module" src="guestbook.js"></script>
+<script type="module" src="game.js"></script>
 </body>
 </html>
