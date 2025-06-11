@@ -95,6 +95,20 @@ function getSymbol(type, owner) {
   return symbols[type] || '?';
 }
 
+function getPieceLabel(type, owner) {
+  const labels = {
+    WANG: owner === 'red' ? '帥' : '將',
+    CHA: '車',
+    MA: '馬',
+    SANG: '象',
+    SA: '士',
+    PO: '包',
+    JOL: '卒',
+  };
+  return labels[type] || '?';
+}
+
+
 export function movePiece(fromR, fromC, toR, toC) {
   const piece = board[fromR][fromC];
   if (!piece) return false;
