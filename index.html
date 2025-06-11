@@ -1,27 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>짱기 - 전략 장기 게임</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="firebaseService.js"></script>
-  <script type="module" src="auth.js"></script>
-  <script type="module" src="game.js"></script>
-  <script type="module" src="guestbook.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <h1>짱기 🧠🐴</h1>
     <p>전략 장기 게임을 시작해보세요!</p>
+    <div id="user-info">
+      <button id="login-btn">Google 로그인</button>
+      <button id="logout-btn" style="display: none;">로그아웃</button>
+    </div>
   </header>
 
   <main>
-    <button id="startBtn" disabled>게임 시작</button>
-    <button onclick="restart()">🔁 다시하기</button>
-    <button onclick="surrender()">🏳️ 항복하기</button>
-
     <div id="stage-info">스테이지 1</div>
+    <div class="game-controls">
+      <button id="startBtn" disabled>게임 시작</button>
+      <button onclick="restart()">🔁 다시하기</button>
+      <button onclick="surrender()">🏳️ 항복하기</button>
+    </div>
     <div id="gameBoard" class="board"></div>
   </main>
 
@@ -29,5 +30,11 @@
     <h2>📜 방명록</h2>
     <div id="guestbook"></div>
   </footer>
+
+  <!-- 모듈 스크립트 로드 순서 중요 -->
+  <script type="module" src="firebaseService.js"></script>
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="game.js"></script>
+  <script type="module" src="guestbook.js"></script>
 </body>
 </html>
