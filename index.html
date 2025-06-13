@@ -2,51 +2,34 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>짱기 - 전략 장기 게임</title>
+  <title>짱기 (JJanggi) – MVP</title>
+
+  <!-- 기본 스타일 시트 -->
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:,">
+
+  <!-- ✅ 추후 Firebase 연동 시 아래 스니펫 교체 또는 주석 해제
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js"></script>
+  <script>
+    // const firebaseConfig = { /* ... */ };
+    // firebase.initializeApp(firebaseConfig);
+  </script>
+  -->
 </head>
 <body>
   <header>
-    <h1>짱기 🧠🐴</h1>
-    <p>전통 장기 규칙 기반 전략 게임</p>
-    <div id="auth-ui">
-      <button id="login-btn">Google 로그인</button>
-      <button id="logout-btn" style="display:none;">로그아웃</button>
-      <span id="user-info"></span>
-    </div>
+    <h1>짱기 (JJanggi) – 싱글 PVE</h1>
   </header>
 
+  <!-- 🎲 게임 보드 9×10 -->
   <main>
-    <div id="stage-info">스테이지 1</div>
-
-    <div class="game-controls">
-      <button id="startBtn" disabled>🎮 게임 시작</button>
-      <button id="restartBtn">🔁 다시하기</button>
-      <button id="surrenderBtn">🏳️ 항복하기</button>
-    </div>
-
-    <div id="gameBoard" class="board"></div>
-    <div id="status-msg"></div>
+    <div id="board" class="board"></div>
+    <p id="status"></p>
   </main>
 
-  <footer>
-    <h2>📜 방명록</h2>
-    <div id="guestbook"></div>
-  </footer>
-
-  <div id="debug-log" style="padding:1rem; background:#f9f9f9; font-size:12px; color:#555;"></div>
-
-  <!-- 🔥 모듈 순서 중요 -->
-  <script type="module" src="firebaseService.js"></script>
-  <script type="module" src="auth.js"></script>
+  <!-- 게임 로직 (모듈) -->
   <script type="module" src="game.js"></script>
-  <script type="module" src="guestbook.js"></script>
-  <script>
-    // 버튼 연결 처리
-    document.getElementById("restartBtn")?.addEventListener("click", () => restart?.());
-    document.getElementById("surrenderBtn")?.addEventListener("click", () => surrender?.());
-  </script>
 </body>
 </html>
